@@ -15,12 +15,10 @@
 {{ warnf "Image parameters file_base_name: %s" $file_base_name -}}
 
 
-{{- $prefix := "../../../static/" -}}
 {{- $hugo_build_file_path := "" -}}
 
-{{- if hasPrefix $file_base_name $prefix -}}
-  {{- $hugo_build_file_path = replace $file_base_name "../../../static" "" -}}
-
+{{- if findRE `\.\./.*static/` (string $file_base_name) -}}
+  {{- $hugo_build_file_path = replaceRE `^(\.\./)+static` "" (string $file_base_name) -}}
 {{- end -}}
 {{ warnf "Image parameters hugo_build_file_path: %s" $hugo_build_file_path -}}
 
