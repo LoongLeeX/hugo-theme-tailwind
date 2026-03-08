@@ -4,19 +4,51 @@
     <h1 class="text-4xl font-semibold text-slate-800 dark:text-slate-200">
       <a href="{{ .RelPermalink }}">{{ T (printf "taxonomies.%s" $type) | safeHTML }}</a>
     </h1>
-    <ul class="flex flex-col gap-3">
-      {{ range $key, $value := .Data.Terms.ByCount }}
-        {{ $term := .Term }}
-        {{ $count := .Count }}
-        {{ with $.Site.GetPage (printf "/%s/%s" $type $term) }}
-          <li class="">
-            <a href="{{ .RelPermalink }}"
-              class="flex flex-row text-slate-600 dark:text-slate-300 backdrop-blur">
-              <span class="text-lg mr-2">{{ $term }}</span>
-              <span class="self-center rounded-full text-xs px-2 bg-red-400 text-white">{{ $count }}</span>
-            </a>
-          </li>
+    {{ $english := slice }}
+    {{ $chinese := slice }}
+    {{ $seen := slice }}
+    {{ range .Data.Terms.Alphabetical }}
+      {{ $term := .Term }}
+      {{ $count := .Count }}
+      {{ with $.Site.GetPage (printf "/%s/%s" $type $term) }}
+        {{ $title := .Title }}
+        {{ $titleKey := replace (lower $title) "." "" }}
+        {{ if not (in $seen $titleKey) }}
+        {{ $seen = $seen | append $titleKey }}
+        {{ $permalink := .RelPermalink }}
+        {{ $item := dict "title" $title "count" $count "permalink" $permalink }}
+        {{ $runes := split $title "" }}
+        {{ $first := index $runes 0 }}
+        {{ if ge $first "一" }}
+          {{ $chinese = $chinese | append $item }}
+        {{ else }}
+          {{ $english = $english | append $item }}
         {{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+    <h2 class="text-2xl font-semibold text-slate-700 dark:text-slate-300 mt-4">A-Z</h2>
+    <ul class="flex flex-col gap-3">
+      {{ range $english }}
+      <li class="">
+        <a href="{{ .permalink }}"
+          class="flex flex-row text-slate-600 dark:text-slate-300 backdrop-blur">
+          <span class="text-lg mr-2">{{ .title }}</span>
+          <span class="self-center rounded-full text-xs px-2 bg-red-400 text-white">{{ .count }}</span>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+    <h2 class="text-2xl font-semibold text-slate-700 dark:text-slate-300 mt-6">中文</h2>
+    <ul class="flex flex-col gap-3">
+      {{ range $chinese }}
+      <li class="">
+        <a href="{{ .permalink }}"
+          class="flex flex-row text-slate-600 dark:text-slate-300 backdrop-blur">
+          <span class="text-lg mr-2">{{ .title }}</span>
+          <span class="self-center rounded-full text-xs px-2 bg-red-400 text-white">{{ .count }}</span>
+        </a>
+      </li>
       {{ end }}
     </ul>
   </div>
